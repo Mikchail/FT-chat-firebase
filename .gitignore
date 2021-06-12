@@ -1,0 +1,10 @@
+.dart_tool
+.build
+./build
+build
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+google-services.json
+build
+pubspec.lock
