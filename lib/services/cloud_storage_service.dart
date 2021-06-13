@@ -15,13 +15,13 @@ class CloudStorageService {
 
   Future<TaskSnapshot> uploadUserImage(String uid, File image) async {
     try {
-      _baseRef
+      return await _baseRef
           .child(_profileImages)
           .child(uid)
           .putFile(image)
           .whenComplete(() => null);
     } catch (e) {
-      print(e);
+      throw Error();
     }
   }
 }

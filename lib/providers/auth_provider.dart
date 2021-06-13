@@ -15,7 +15,7 @@ enum AuthStatus {
 class AuthProvider extends ChangeNotifier {
   AuthStatus status = AuthStatus.Empty;
   late FirebaseAuth _auth;
-  late User _user = null;
+  User? _user = null;
 
   // FirebaseAuth _auth = FirebaseAuth.instance;
   static AuthProvider instance = AuthProvider();
@@ -32,10 +32,13 @@ class AuthProvider extends ChangeNotifier {
           email: email, password: password);
       _user = _result.user as User;
       status = AuthStatus.Authenticated;
-      SnackBarService.instance.showSnackBarSuccess("Welcome ${_user.email}");
-      // navigate
+      SnackBarService.instance.showSnackBarSuccess("Welcome ${_user!.email}");
+      // update lasttime
+      // navigate to homepage
+      NavigationService.instance.navigatorToReplacement("home");
     } catch (e) {
       status = AuthStatus.Error;
+      _user = null;
       SnackBarService.instance.showSnackBarError("Error Not Login");
       // Display Error
     }
@@ -49,15 +52,20 @@ class AuthProvider extends ChangeNotifier {
     try {
       UserCredential _result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      _user = _result.user as User;
-      status = AuthStatus.Authenticated;
-      await onSuccess(_user.uid);
-      SnackBarService.instance.showSnackBarSuccess("Welcome ${_user.email}");
-      NavigationService.instance.goBack();
+      _user = _result.user;
+      if (_user != null) {
+        status = AuthStatus.Authenticated;
+        await onSuccess(_user!.uid);
+        SnackBarService.instance.showSnackBarSuccess("Welcome ${_user!.email}");
+        // update lasttime
+        NavigationService.instance.goBack();
+        NavigationService.instance.navigatorToReplacement("home");
+      }
     } catch (e) {
       status = AuthStatus.Error;
       _user = null;
       SnackBarService.instance.showSnackBarError("Error Not register");
     }
+    notifyListeners();
   }
 }

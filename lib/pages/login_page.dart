@@ -29,7 +29,6 @@ class _LoginPageState extends State<LoginPage> {
     _deviceWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Align(
           alignment: Alignment.center,
@@ -162,7 +161,6 @@ class _LoginPageState extends State<LoginPage> {
             width: _deviceWidth,
             child: MaterialButton(
               onPressed: () {
-                _formKey.currentState!.validate();
                 if (_formKey.currentState!.validate()) {
                   _auth.loginUserWithEmailAndPassword(_email, _password);
                 }

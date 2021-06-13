@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:ft_chat/pages/home_page.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:ft_chat/pages/login_page.dart';
 import 'package:ft_chat/pages/registration_page.dart';
@@ -17,10 +18,13 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       navigatorKey: NavigationService.instance.navigatorKey,
       theme: ThemeData(
-          brightness: Brightness.dark, backgroundColor: Colors.black12),
+          brightness: Brightness.dark,
+          backgroundColor: Color.fromRGBO(28, 27, 27, 1)),
+
       // initialRoute: "login",
       routes: {
         "login": (BuildContext _context) => LoginPage(),
+        "home": (BuildContext _context) => HomePage(),
         "register": (BuildContext _context) => RegistrationPage(),
       },
       home: AppWithFirebase(),

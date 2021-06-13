@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
+import 'package:ft_chat/services/cloud_storage_service.dart';
+import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/media_service.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,9 +23,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String _email = "";
   String _password = "";
   PickedFile? _pickedFile;
+  File? _file;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   AuthProvider _auth = AuthProvider();
-  
+
   @override
   Widget build(BuildContext context) {
     _deviceHeight = MediaQuery.of(context).size.height;
@@ -35,25 +40,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget registrationPageUI() {
-    return Builder(builder: (BuildContext context){
-    _auth = Provider.of<AuthProvider>(context);
-    return  Container(
-      height: _deviceHeight * 0.75,
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _headlineWidget(),
-          _inputForm(),
-          _registerButton(),
-          _backLoginPageButton(),
-        ],
-      ),
-    );
-    }
+    return Builder(builder: (BuildContext context) {
+      _auth = Provider.of<AuthProvider>(context);
+      return Container(
+        height: _deviceHeight * 0.75,
+        padding: EdgeInsets.symmetric(horizontal: 40),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _headlineWidget(),
+            _inputForm(),
+            _registerButton(),
+            _backLoginPageButton(),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _headlineWidget() {
@@ -74,7 +79,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget _inputForm() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 20),
+      padding: EdgeInsets.symmetric(vertical: 10),
       child: Form(
         key: _formKey,
         onChanged: () {
@@ -102,27 +107,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
         PickedFile? _imageFile =
             await MediaService.instance.getImageFromLibrary();
         setState(() {
+          // TODO mb get rid of _pickedFile
           _pickedFile = _imageFile;
+          _file = File(_imageFile!.path);
         });
       },
-      child: Container(
-          alignment: Alignment.center,
-          // child: _pickedFile != null
-          //     ? Image.asset(
-          //         _pickedFile!.path,
-          //         width: 50,
-          //         height: 50,
-          //       )
-          //     : null,
-          decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(500),
-              // TODO get image
-              image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: NetworkImage(
-                      "https://pub.dev/static/img/pub-dev-logo-2x.png?hash=umitaheu8hl7gd3mineshk2koqfngugi",
-                      scale: 0.5)))),
+      child: Center(
+        child: Container(
+            width: 50,
+            height: 50,
+            alignment: Alignment.center,
+            child: _file != null
+                ? ClipOval(
+                    child: Image.file(
+                      _file as File,
+                      width: 60,
+                      height: 60,
+                    ),
+                  )
+                : null,
+            decoration: _file != null
+                ? null
+                : BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(500),
+                  )),
+      ),
     );
   }
 
@@ -203,24 +213,35 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget _registerButton() {
-    return Container(
-      height: _deviceHeight * 0.06,
-      width: _deviceWidth,
-      child: MaterialButton(
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            // _auth.loginUserWithEmailAndPassword(_email, _password);
-          }
-        },
-        color: Colors.blue,
-        child: Text("REGISTER",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: Colors.white60)),
-      ),
-    );
+    return _auth.status == AuthStatus.Authenticating
+        ? Center(
+            child: CircularProgressIndicator(),
+          )
+        : Container(
+            height: _deviceHeight * 0.06,
+            width: _deviceWidth,
+            child: MaterialButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate() && _file != null) {
+                  _auth.registerUserWithEmailAndPassword(_email, _password,
+                      (String uid) async {
+                    var _result = await CloudStorageService.instance
+                        .uploadUserImage(uid, _file as File);
+                    var _imageUrl = await _result.ref.getDownloadURL();
+                    await DBService.instance
+                        .createUserInDb(uid, _name, _email, _imageUrl);
+                  });
+                }
+              },
+              color: Colors.blue,
+              child: Text("REGISTER",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: Colors.white)),
+            ),
+          );
   }
 
   Widget _backLoginPageButton() {
