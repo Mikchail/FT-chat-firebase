@@ -6,6 +6,7 @@ import 'package:ft_chat/services/cloud_storage_service.dart';
 import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/media_service.dart';
 import 'package:ft_chat/services/navigation_service.dart';
+import 'package:ft_chat/services/snackbar_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -41,6 +42,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget registrationPageUI() {
     return Builder(builder: (BuildContext context) {
+      SnackBarService.instance.buildContext = context;
       _auth = Provider.of<AuthProvider>(context);
       return Container(
         height: _deviceHeight * 0.75,

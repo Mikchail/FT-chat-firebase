@@ -4,17 +4,12 @@ class SnackBarService {
   late BuildContext _buildContext;
   static SnackBarService instance = SnackBarService();
 
-  //
-  // SnackBarService(){
-  //
-  // }
-
   set buildContext(BuildContext _context) {
     _buildContext = _context;
   }
 
   void showSnackBarError(String _message) {
-    Scaffold.of(_buildContext).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(_buildContext).showSnackBar(SnackBar(
       backgroundColor: Colors.red,
       duration: Duration(seconds: 2),
       content:
@@ -23,7 +18,7 @@ class SnackBarService {
   }
 
   void showSnackBarSuccess(String _message) {
-    Scaffold.of(_buildContext).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(_buildContext).showSnackBar(SnackBar(
       backgroundColor: Colors.green,
       duration: Duration(seconds: 2),
       content:
