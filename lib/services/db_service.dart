@@ -49,6 +49,13 @@ class DBService {
     });
   }
 
+  Stream<Conversation> getConversation(String conversationID) {
+    var ref = _db.collection(_conversationsCollection).doc(conversationID);
+    return ref.snapshots().map((snapshot) {
+      return Conversation.fromFireStore(snapshot);
+    });
+  }
+
   Stream<List<Contact>> getUsersInDB(String searchName) {
     var ref = _db
         .collection(_userCollection)

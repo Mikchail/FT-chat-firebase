@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ft_chat/models/message.dart';
 
 class ConversationSnipet {
   final String id;
@@ -29,5 +30,45 @@ class ConversationSnipet {
       unseenCount: data["unseenCount"],
       timestamp: data["timestamp"],
     );
+  }
+}
+
+class Conversation {
+  final String id;
+  final List<String> members;
+  final List<Message> messages;
+  final String ownerID;
+
+  Conversation(
+      {required this.id,
+      required this.members,
+      required this.messages,
+      required this.ownerID});
+
+  factory Conversation.fromFireStore(DocumentSnapshot snapshot) {
+    var data = snapshot.data() as dynamic;
+    List<Message> messages = [];
+    List<String> members = [];
+    if (data["messages"] != null) {
+      data["messages"].forEach((m) {
+        var messageType =
+            m["type"] == "text" ? MessageType.Text : MessageType.Image;
+        messages.add(Message(
+            content: m["message"],
+            senderID: m["senderID"],
+            timestamp: m["timestamp"],
+            type: messageType));
+      });
+    }
+    data["members"].forEach((m) {
+      members.add(m);
+    });
+    print(messages);
+    return Conversation(
+        id: snapshot.id,
+        members: members,
+        ownerID: data["ownerID"],
+        messages: messages);
+    ;
   }
 }

@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
+import 'package:ft_chat/pages/conversation_page.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
 import 'package:ft_chat/services/db_service.dart';
+import 'package:ft_chat/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -28,6 +30,12 @@ class RecentConversationsPage extends StatelessWidget {
             builder: (context, snapshot) {
               var data = snapshot.data;
               if (snapshot.hasData && data != null) {
+                if (data.length == 0) {
+                  return Center(
+                    child: Text("Not Conversation Yet",
+                        style: TextStyle(color: Colors.grey)),
+                  );
+                }
                 return ListView.builder(
                     itemCount: data.length,
                     itemBuilder: (context, index) {
@@ -44,7 +52,16 @@ class RecentConversationsPage extends StatelessWidget {
 
   Widget _buildListTile(context, ConversationSnipet data) {
     return ListTile(
-      onTap: () {},
+      onTap: () {
+        NavigationService.instance
+            .navigatorToRoute(MaterialPageRoute(builder: (context) {
+          return ConversationPage(
+              conversationID: data.chatID,
+              receiverID: data.id,
+              receiverImage: data.image,
+              receiverName: data.name);
+        }));
+      },
       title: Text(data.name),
       subtitle: Text(data.lastMessage),
       leading: CircleAvatar(
@@ -56,7 +73,7 @@ class RecentConversationsPage extends StatelessWidget {
   }
 
   Column _buildTraling(Timestamp lastSeen) {
-    var timeDifference = lastSeen.toDate().difference(DateTime.now());
+    // var timeDifference = lastSeen.toDate().difference(DateTime.now());
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
