@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
 import 'package:ft_chat/models/message.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
+import 'package:ft_chat/services/cloud_storage_service.dart';
 import 'package:ft_chat/services/db_service.dart';
+import 'package:ft_chat/services/media_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'dart:io';
 
 class ConversationPage extends StatefulWidget {
   String conversationID;
@@ -25,6 +28,9 @@ class ConversationPage extends StatefulWidget {
 
 class _ConversationPageState extends State<ConversationPage> {
   late AuthProvider _auth;
+  String _messageText = "";
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,7 +97,11 @@ class _ConversationPageState extends State<ConversationPage> {
             !isOwnMessage ? MainAxisAlignment.start : MainAxisAlignment.end,
         children: [
           !isOwnMessage ? _userImage() : Container(),
-          _textMessageBubble(isOwnMessage, message.content, message.timestamp)
+          message.type == MessageType.Text
+              ? _textMessageBubble(
+                  isOwnMessage, message.content, message.timestamp)
+              : _imageMessageBubble(
+                  isOwnMessage, message.content, message.timestamp),
         ],
       ),
     );
@@ -142,6 +152,50 @@ class _ConversationPageState extends State<ConversationPage> {
     );
   }
 
+  Widget _imageMessageBubble(
+      bool isOwnMessage, String imageURL, Timestamp timestamp) {
+    List<Color> colorScheme = isOwnMessage
+        ? [Colors.blue, Color.fromRGBO(42, 117, 188, 1)]
+        : [Color.fromRGBO(69, 69, 69, 1), Color.fromRGBO(43, 43, 43, 1)];
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+            colors: colorScheme,
+            stops: [0.30, 0.70],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 300,
+              height: 100,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  image: DecorationImage(
+                      image: NetworkImage(
+                        imageURL,
+                      ),
+                      fit: BoxFit.cover)),
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Text(timeago.format(timestamp.toDate()),
+                style: TextStyle(color: Colors.white70, fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _messageField(context) {
     return Container(
       height: 60,
@@ -150,6 +204,7 @@ class _ConversationPageState extends State<ConversationPage> {
           color: Color.fromRGBO(43, 43, 43, 1),
           borderRadius: BorderRadius.circular(100)),
       child: Form(
+        key: _formKey,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.max,
@@ -176,8 +231,14 @@ class _ConversationPageState extends State<ConversationPage> {
             }
             return null;
           },
-          onChanged: (input) {},
-          onSaved: (input) {},
+          onChanged: (input) {
+            _formKey.currentState?.save();
+          },
+          onSaved: (input) {
+            setState(() {
+              _messageText = input.toString();
+            });
+          },
           autocorrect: false,
           cursorColor: Colors.white,
           decoration: InputDecoration(
@@ -193,7 +254,20 @@ class _ConversationPageState extends State<ConversationPage> {
       width: 40,
       child: IconButton(
         icon: Icon(Icons.send, color: Colors.white),
-        onPressed: () {},
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            DBService.instance.sendMessage(
+                widget.conversationID,
+                Message(
+                  content: _messageText,
+                  timestamp: Timestamp.now(),
+                  senderID: _auth.user!.uid,
+                  type: MessageType.Text,
+                ));
+            _formKey.currentState!.reset();
+            FocusScope.of(context).unfocus();
+          }
+        },
       ),
     );
   }
@@ -203,7 +277,21 @@ class _ConversationPageState extends State<ConversationPage> {
         height: 40,
         width: 40,
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () async {
+            var image = await MediaService.instance.getImageFromLibrary();
+            if (image != null) {
+              var result = await CloudStorageService.instance
+                  .uploadMediaMessage(_auth.user!.uid, File(image.path));
+              var imageURL = await result.ref.getDownloadURL();
+              DBService.instance.sendMessage(
+                  widget.conversationID,
+                  Message(
+                      content: imageURL,
+                      senderID: _auth.user!.uid,
+                      timestamp: Timestamp.now(),
+                      type: MessageType.Image));
+            }
+          },
           backgroundColor: Colors.blue,
           child: Icon(
             Icons.camera_enhance,

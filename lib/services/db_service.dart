@@ -1,6 +1,7 @@
 import "package:cloud_firestore/cloud_firestore.dart";
 import 'package:ft_chat/models/contact.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
+import 'package:ft_chat/models/message.dart';
 
 class DBService {
   FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -65,6 +66,33 @@ class DBService {
       return snapshot.docs.map((doc) {
         return Contact.fromFirestore(doc);
       }).toList();
+    });
+  }
+
+  Future<void> sendMessage(String conversationID, Message message) {
+    var ref = _db.collection(_conversationsCollection).doc(conversationID);
+    var messageType = "";
+    switch (message.type) {
+      case MessageType.Text:
+        messageType = "text";
+        break;
+      case MessageType.Image:
+        messageType = "image";
+        break;
+      default:
+        messageType = "text";
+    }
+    return ref.update({
+      "messages": FieldValue.arrayUnion(
+        [
+          {
+            "message": message.content,
+            "senderID": message.senderID,
+            "timestamp": message.timestamp,
+            "type": messageType
+          },
+        ],
+      ),
     });
   }
 }
