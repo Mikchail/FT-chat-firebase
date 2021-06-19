@@ -7,6 +7,7 @@ class ConversationSnipet {
   final String lastMessage;
   final String name;
   final String image;
+  final MessageType type;
   final int unseenCount;
   final Timestamp timestamp;
 
@@ -16,11 +17,16 @@ class ConversationSnipet {
       required this.lastMessage,
       required this.name,
       required this.image,
+      required this.type,
       required this.unseenCount,
       required this.timestamp});
 
   factory ConversationSnipet.fromFirestore(snapshot) {
     var data = snapshot.data() as dynamic;
+    var messageType =
+        data["type"] == "text" ? MessageType.Text : MessageType.Image;
+    var timestamp =
+        data["timestamp"] == null ? Timestamp.now() : data["timestamp"];
     return ConversationSnipet(
       id: snapshot.id,
       chatID: data["chatID"],
@@ -28,7 +34,8 @@ class ConversationSnipet {
       name: data["name"],
       image: data["image"],
       unseenCount: data["unseenCount"],
-      timestamp: data["timestamp"],
+      timestamp: timestamp,
+      type: messageType,
     );
   }
 }
@@ -52,7 +59,9 @@ class Conversation {
     if (data["messages"] != null) {
       data["messages"].forEach((m) {
         var messageType =
-            m["type"] == "text" ? MessageType.Text : MessageType.Image;
+            m["type"] == "image" ? MessageType.Image : MessageType.Text;
+        print("messageType");
+        print(messageType);
         messages.add(Message(
             content: m["message"],
             senderID: m["senderID"],

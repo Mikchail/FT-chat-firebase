@@ -11,8 +11,8 @@ class DBService {
   String _userCollection = "Users";
   String _conversationsCollection = "Conversations";
 
-  Future<void> createUserInDb(
-      String uid, String name, String email, String imageURL) async {
+  Future<void> createUserInDb(String uid, String name, String email,
+      [String imageURL = ""]) async {
     try {
       return await _db.collection(_userCollection).doc(uid).set({
         "id": uid,
@@ -94,5 +94,33 @@ class DBService {
         ],
       ),
     });
+  }
+
+  Future<void> createOrGetConversaion(String currentID, String recepientID,
+      Future<void> onSuccess(String conversationID)) async {
+    var ref = _db.collection(_conversationsCollection);
+    var userConversationRef = _db
+        .collection(_userCollection)
+        .doc(currentID)
+        .collection(_conversationsCollection);
+
+    try {
+      var conversation =
+          await userConversationRef.doc(recepientID).get() as dynamic;
+      if (conversation.exists) {
+        return onSuccess(conversation.data["chatID"]);
+      } else {
+        DocumentReference conversationRef = ref.doc();
+        await conversationRef.set({
+          "members": [currentID, recepientID],
+          "messages": [],
+          "ownerID": currentID
+        });
+        return onSuccess(conversationRef.id);
+      }
+    } catch (e) {
+      print(e);
+      print("Error is here");
+    }
   }
 }

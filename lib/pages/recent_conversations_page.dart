@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
+import 'package:ft_chat/models/message.dart';
 import 'package:ft_chat/pages/conversation_page.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
 import 'package:ft_chat/services/db_service.dart';
@@ -13,6 +14,7 @@ class RecentConversationsPage extends StatelessWidget {
   final double width;
   late AuthProvider _auth;
   RecentConversationsPage({required this.height, required this.width});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AuthProvider>.value(
@@ -28,6 +30,7 @@ class RecentConversationsPage extends StatelessWidget {
           child: StreamBuilder<List<ConversationSnipet>>(
             stream: DBService.instance.getUserConversations(_auth.user!.uid),
             builder: (context, snapshot) {
+              print(snapshot);
               var data = snapshot.data;
               if (snapshot.hasData && data != null) {
                 if (data.length == 0) {
@@ -41,6 +44,11 @@ class RecentConversationsPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       return _buildListTile(context, data[index]);
                     });
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text("Error! Try later",
+                      style: TextStyle(color: Colors.grey)),
+                );
               }
               return Center(
                 child: CircularProgressIndicator(),
@@ -51,6 +59,17 @@ class RecentConversationsPage extends StatelessWidget {
   }
 
   Widget _buildListTile(context, ConversationSnipet data) {
+    Text getMessage(MessageType type, [String lastMessage = "Not messages"]) {
+      switch (type) {
+        case MessageType.Text:
+          return Text(lastMessage);
+        case MessageType.Image:
+          return Text("Attachment: Image");
+        default:
+          return Text("Not messages");
+      }
+    }
+
     return ListTile(
       onTap: () {
         NavigationService.instance
@@ -63,7 +82,7 @@ class RecentConversationsPage extends StatelessWidget {
         }));
       },
       title: Text(data.name),
-      subtitle: Text(data.lastMessage),
+      subtitle: getMessage(data.type, data.lastMessage),
       leading: CircleAvatar(
         radius: 20,
         backgroundImage: NetworkImage(data.image),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
@@ -27,12 +29,15 @@ class ConversationPage extends StatefulWidget {
 }
 
 class _ConversationPageState extends State<ConversationPage> {
+  late double _deviceHeight;
   late AuthProvider _auth;
   String _messageText = "";
+  ScrollController _listViewController = ScrollController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    _deviceHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
       appBar: AppBar(
@@ -65,14 +70,22 @@ class _ConversationPageState extends State<ConversationPage> {
   }
 
   Widget _messageListView() {
+    print("widget.conversationID");
+    print(widget.conversationID);
     return StreamBuilder<Conversation>(
         stream: DBService.instance.getConversation(widget.conversationID),
         builder: (context, snapshot) {
           var conversation = snapshot.data;
           if (snapshot.hasData && conversation != null) {
             var messages = conversation.messages;
+            Timer(Duration(microseconds: 50), () {
+              _listViewController
+                  .jumpTo(_listViewController.position.maxScrollExtent);
+            });
             return Container(
+              padding: EdgeInsets.only(bottom: 90),
               child: ListView.builder(
+                  controller: _listViewController,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     var message = messages[index];
@@ -176,7 +189,7 @@ class _ConversationPageState extends State<ConversationPage> {
           children: [
             Container(
               width: 300,
-              height: 100,
+              height: _deviceHeight * 0.3,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   image: DecorationImage(
@@ -212,7 +225,7 @@ class _ConversationPageState extends State<ConversationPage> {
           children: [
             _messageTextField(),
             _senderMessageButton(context),
-            _imageMessageButton(),
+            // _imageMessageButton(),
           ],
         ),
       ),

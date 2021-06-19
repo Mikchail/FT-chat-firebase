@@ -31,15 +31,23 @@ class ProfilePage extends StatelessWidget {
             }
             return Center(
               child: SizedBox(
-                height: height * 0.6,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _circleAvatar(user.image),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     _userName(user.name),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     _userEmail(user.email),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     _logout()
                   ],
                 ),
@@ -51,7 +59,7 @@ class ProfilePage extends StatelessWidget {
 
   Widget _logout() {
     return Container(
-      height: height * 0.06,
+      height: 50,
       width: width * 0.8,
       child: Container(
         child: MaterialButton(
@@ -70,7 +78,6 @@ class ProfilePage extends StatelessWidget {
 
   Container _userEmail(String email) {
     return Container(
-      height: height * 0.3,
       width: width,
       child: Text(email,
           textAlign: TextAlign.center,
@@ -80,7 +87,6 @@ class ProfilePage extends StatelessWidget {
 
   Container _userName(String userName) {
     return Container(
-      height: height * 0.06,
       width: width,
       child: Text(userName,
           textAlign: TextAlign.center,
@@ -93,7 +99,7 @@ class ProfilePage extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: CircleAvatar(
         radius: 60,
-        backgroundImage: NetworkImage(image),
+        backgroundImage: image == "" ? null : NetworkImage(image),
       ),
     );
   }

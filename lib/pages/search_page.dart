@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ft_chat/models/contact.dart';
+import 'package:ft_chat/pages/conversation_page.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
 import 'package:ft_chat/services/db_service.dart';
+import 'package:ft_chat/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -17,6 +19,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   late AuthProvider _auth;
   late String _searchName = "";
+
   void initState() {
     super.initState();
   }
@@ -77,13 +80,27 @@ class _SearchPageState extends State<SearchPage> {
                 child: ListView.builder(
                     itemCount: usersData.length,
                     itemBuilder: (context, index) {
+                      var recepientID = usersData[index].id;
                       var userIsActive = !usersData[index]
                           .lastSeen
                           .toDate()
                           .isBefore(
                               DateTime.now().subtract(Duration(hours: 1)));
                       return ListTile(
-                        onTap: () {},
+                        onTap: () {
+                          DBService.instance.createOrGetConversaion(
+                              _auth.user!.uid, recepientID,
+                              (String conversationID) {
+                            return NavigationService.instance.navigatorToRoute(
+                                MaterialPageRoute(builder: (context) {
+                              return ConversationPage(
+                                  conversationID: conversationID,
+                                  receiverID: recepientID,
+                                  receiverImage: usersData[index].image,
+                                  receiverName: usersData[index].name);
+                            }));
+                          });
+                        },
                         title: Text(usersData[index].name),
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(usersData[index].image),

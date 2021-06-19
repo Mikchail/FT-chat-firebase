@@ -60,7 +60,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       status = AuthStatus.Error;
       user = null;
-      SnackBarService.instance.showSnackBarError("Error Not Login");
+      SnackBarService.instance.showSnackBarError(e.toString());
       // Display Error
     }
     notifyListeners();

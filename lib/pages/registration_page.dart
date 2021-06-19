@@ -45,7 +45,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
       SnackBarService.instance.buildContext = context;
       _auth = Provider.of<AuthProvider>(context);
       return Container(
-        height: _deviceHeight * 0.75,
         padding: EdgeInsets.symmetric(horizontal: 40),
         alignment: Alignment.center,
         child: Column(
@@ -105,7 +104,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget _imageSelectorWidget() {
     return GestureDetector(
       onTap: () async {
-        print("press");
         PickedFile? _imageFile =
             await MediaService.instance.getImageFromLibrary();
         setState(() {
@@ -224,14 +222,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             width: _deviceWidth,
             child: MaterialButton(
               onPressed: () {
-                if (_formKey.currentState!.validate() && _file != null) {
+                if (_formKey.currentState!.validate()) {
                   _auth.registerUserWithEmailAndPassword(_email, _password,
                       (String uid) async {
-                    var _result = await CloudStorageService.instance
-                        .uploadUserImage(uid, _file as File);
-                    var _imageUrl = await _result.ref.getDownloadURL();
-                    await DBService.instance
-                        .createUserInDb(uid, _name, _email, _imageUrl);
+                    // var _result = await CloudStorageService.instance
+                    //     .uploadUserImage(uid, _file as File);
+                    // var _imageUrl = await _result.ref.getDownloadURL();
+                    await DBService.instance.createUserInDb(uid, _name, _email);
+                    // .createUserInDb(uid, _name, _email, _imageUrl);
                   });
                 }
               },

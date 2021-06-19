@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage>
       backgroundColor: Theme.of(context).backgroundColor,
       body: _tabBarPages(),
       appBar: _buildAppBar(),
-      // bottomNavigationBar:  TODO you can  add here tabs
+      // bottomNavigationBar:  TODO you can add tabs here
     );
   }
 

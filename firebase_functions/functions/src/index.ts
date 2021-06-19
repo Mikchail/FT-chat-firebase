@@ -26,6 +26,7 @@ export const onConversationCreated = functions.firestore
                   "chatID": chatID,
                   "image": userData.image,
                   "name": userData.name,
+                  "type": "text",
                   "unseenCount": 1
                 });
             }
@@ -56,6 +57,7 @@ export const onConversationUpdated = functions.firestore
             .update({
               "lastMessage": lastMessage.message,
               "timestamp": lastMessage.timestamp,
+              "type": lastMessage.type,
               "unseenCount": admin.firestore.FieldValue.increment(1)
             });
         });
