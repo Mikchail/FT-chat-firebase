@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mypinion.ft_chat">
+    <uses-permission android:name="android.permission.INTERNET" />
    <application
-        android:label="ft_chat"
+        android:label="Chat for friends"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
