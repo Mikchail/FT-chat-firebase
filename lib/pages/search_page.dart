@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ft_chat/models/contact.dart';
 import 'package:ft_chat/pages/conversation_page.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
-import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -68,12 +67,13 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _usersListView() {
     return StreamBuilder(
-        stream: DBService.instance.getUsersInDB(_searchName),
+        stream: null,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var usersData = snapshot.data as List<Contact>;
             if (usersData != null) {
-              usersData.removeWhere((contact) => contact.id == _auth.user!.uid);
+              usersData.removeWhere(
+                  (contact) => contact.id == _auth.authData!.user.id);
             }
             return Expanded(
               child: Container(
@@ -88,18 +88,18 @@ class _SearchPageState extends State<SearchPage> {
                               DateTime.now().subtract(Duration(hours: 1)));
                       return ListTile(
                         onTap: () {
-                          DBService.instance.createOrGetConversaion(
-                              _auth.user!.uid, recepientID,
-                              (String conversationID) {
-                            return NavigationService.instance.navigatorToRoute(
-                                MaterialPageRoute(builder: (context) {
-                              return ConversationPage(
-                                  conversationID: conversationID,
-                                  receiverID: recepientID,
-                                  receiverImage: usersData[index].image,
-                                  receiverName: usersData[index].name);
-                            }));
-                          });
+                          // DBService.instance.createOrGetConversaion(
+                          //     _auth.authData!.user.id, recepientID,
+                          //     (String conversationID) {
+                          //   return NavigationService.instance.navigatorToRoute(
+                          //       MaterialPageRoute(builder: (context) {
+                          //     return ConversationPage(
+                          //         conversationID: conversationID,
+                          //         receiverID: recepientID,
+                          //         receiverImage: usersData[index].image,
+                          //         receiverName: usersData[index].name);
+                          //   }));
+                          // });
                         },
                         title: Text(usersData[index].name),
                         leading: CircleAvatar(

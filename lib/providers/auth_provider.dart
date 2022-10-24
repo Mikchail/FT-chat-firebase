@@ -1,10 +1,14 @@
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ft_chat/services/db_service.dart';
+import 'package:ft_chat/models/User.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:ft_chat/services/snackbar_service.dart';
+
+import '../services/api_service.dart';
 
 enum AuthStatus {
   Empty,
@@ -17,29 +21,34 @@ enum AuthStatus {
 
 class AuthProvider extends ChangeNotifier {
   AuthStatus status = AuthStatus.Empty;
-  late FirebaseAuth _auth;
+  static const String userKey = "user";
   // ignore: avoid_init_to_null
-  late User? user = null;
+  late AuthData? authData = null;
 
   // FirebaseAuth _auth = FirebaseAuth.instance;
   static AuthProvider instance = AuthProvider();
-
+  final EncryptedSharedPreferences encryptSP = EncryptedSharedPreferences();
   AuthProvider() {
-    _auth = FirebaseAuth.instance;
     _checkCurrentUserIsAuthenticated();
   }
 
   void _autoLogin() async {
-    if (user != null) {
-      await DBService.instance.updateUserLastSeenTime(user!.uid);
+    if (authData != null) {
+      // await DBService.instance.updateUserLastSeenTime(user!.uid);
       return NavigationService.instance.navigatorTo("home");
     }
   }
 
   void _checkCurrentUserIsAuthenticated() async {
-    user = await _auth.currentUser;
-    if (user != null) {
-      notifyListeners();
+    var data = await encryptSP.getString(userKey);
+    if (data.isNotEmpty) {
+      authData = AuthData.fromJson(json.decode(data));
+    }
+
+    if (authData != null) {
+      log(authData!.user.email);
+      log("authData.toString()");
+      // notifyListeners();
       _autoLogin();
     }
   }
@@ -48,41 +57,54 @@ class AuthProvider extends ChangeNotifier {
     status = AuthStatus.Authenticating;
     notifyListeners();
     try {
-      UserCredential _result = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
-      user = _result.user as User;
-      status = AuthStatus.Authenticated;
-      SnackBarService.instance.showSnackBarSuccess("Welcome ${user!.email}");
+      // UserCredential _result = await _auth.signInWithEmailAndPassword(
+      //     email: email, password: password);
+      // user = _result.user as User;
+      var res = await ApiService.instance.login(email, password);
+      if (res != null) {
+        authData = res as AuthData;
+        await encryptSP.setString(userKey, json.encode(res));
+      }
 
-      DBService.instance.updateUserLastSeenTime(user!.uid);
+      if (authData != null) {
+        status = AuthStatus.Authenticated;
+        SnackBarService.instance
+            .showSnackBarSuccess("Welcome ${res.user.email}");
+      }
+      // DBService.instance.updateUserLastSeenTime(user!.uid);
 
       NavigationService.instance.navigatorToReplacement("home");
     } catch (e) {
       status = AuthStatus.Error;
-      user = null;
+      authData = null;
       SnackBarService.instance.showSnackBarError(e.toString());
       // Display Error
     }
     notifyListeners();
   }
 
-  void registerUserWithEmailAndPassword(
-      String email, String password, Future<void> onSuccess(String uid)) async {
+  void registerUserWithEmailAndPassword(String email, String password,
+      String name, Future<void> onSuccess(String uid)) async {
     status = AuthStatus.Authenticating;
     notifyListeners();
     try {
-      UserCredential _result = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      user = _result.user;
-      if (user != null) {
+      // UserCredential _result = await _auth.createUserWithEmailAndPassword(
+      //     email: email, password: password);
+      var res = await ApiService.instance.registeration(email, password, name);
+      if (res != null) {
+        authData = res as AuthData;
+        await encryptSP.setString(userKey, json.encode(res));
+      }
+      if (authData != null) {
         status = AuthStatus.Authenticated;
-        await onSuccess(user!.uid);
-        SnackBarService.instance.showSnackBarSuccess("Welcome ${user!.email}");
-        DBService.instance.updateUserLastSeenTime(user!.uid);
+        await onSuccess(authData!.user.id);
+        SnackBarService.instance
+            .showSnackBarSuccess("Welcome ${authData!.user.email}");
         NavigationService.instance.goBack();
         NavigationService.instance.navigatorToReplacement("home");
       }
     } catch (e) {
+      log(e.toString());
       if (e is FirebaseAuthException) {
         if (e.code == "invalid-email") {
           SnackBarService.instance.showSnackBarError(e.message!);
@@ -98,15 +120,16 @@ class AuthProvider extends ChangeNotifier {
       }
 
       status = AuthStatus.Error;
-      user = null;
+      authData = null;
     }
     notifyListeners();
   }
 
   void logoutUser(Future<void> onSuccess()) async {
     try {
-      await _auth.signOut();
-      user = null;
+      // await _auth.signOut();
+      encryptSP.remove(userKey);
+      authData = null;
       status = AuthStatus.NotAuthenticated;
       await onSuccess();
       await NavigationService.instance.navigatorToReplacement("login");

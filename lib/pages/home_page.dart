@@ -15,7 +15,22 @@ class _HomePageState extends State<HomePage>
   late double height;
   late double width;
   _HomePageState() {
+    //
+  }
+  @override
+  void initState() {
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (mounted) {
+      // setState(() => _tabController = null);
+    }
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override

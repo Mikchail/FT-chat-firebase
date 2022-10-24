@@ -4,7 +4,6 @@ import 'package:ft_chat/models/conversation_snipet.dart';
 import 'package:ft_chat/models/message.dart';
 import 'package:ft_chat/pages/conversation_page.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
-import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -28,7 +27,7 @@ class RecentConversationsPage extends StatelessWidget {
           height: height,
           width: width,
           child: StreamBuilder<List<ConversationSnipet>>(
-            stream: DBService.instance.getUserConversations(_auth.user!.uid),
+            stream: null,
             builder: (context, snapshot) {
               print(snapshot);
               var data = snapshot.data;

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:ft_chat/models/conversation_snipet.dart';
 import 'package:ft_chat/models/message.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
-import 'package:ft_chat/services/cloud_storage_service.dart';
-import 'package:ft_chat/services/db_service.dart';
+// import 'package:ft_chat/services/cloud_storage_service.dart';
+// import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/media_service.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -73,7 +73,7 @@ class _ConversationPageState extends State<ConversationPage> {
     print("widget.conversationID");
     print(widget.conversationID);
     return StreamBuilder<Conversation>(
-        stream: DBService.instance.getConversation(widget.conversationID),
+        stream: {} as Stream<Conversation>?,
         builder: (context, snapshot) {
           var conversation = snapshot.data;
           if (snapshot.hasData && conversation != null) {
@@ -89,8 +89,8 @@ class _ConversationPageState extends State<ConversationPage> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     var message = messages[index];
-                    bool _isOwnMessage = message.senderID == _auth.user!.uid;
-                    return _messageListViewChild(_isOwnMessage, message);
+                    // bool _isOwnMessage = message.senderID == _auth.authData!.user.id;
+                    return _messageListViewChild(true, message);
                   }),
             );
           }
@@ -269,14 +269,14 @@ class _ConversationPageState extends State<ConversationPage> {
         icon: Icon(Icons.send, color: Colors.white),
         onPressed: () {
           if (_formKey.currentState!.validate()) {
-            DBService.instance.sendMessage(
-                widget.conversationID,
-                Message(
-                  content: _messageText,
-                  timestamp: Timestamp.now(),
-                  senderID: _auth.user!.uid,
-                  type: MessageType.Text,
-                ));
+            // DBService.instance.sendMessage(
+            //     widget.conversationID,
+            //     Message(
+            //       content: _messageText,
+            //       timestamp: Timestamp.now(),
+            //       senderID: _auth.authData!.user.id,
+            //       type: MessageType.Text,
+            //     ));
             _formKey.currentState!.reset();
             FocusScope.of(context).unfocus();
           }
@@ -293,16 +293,16 @@ class _ConversationPageState extends State<ConversationPage> {
           onPressed: () async {
             var image = await MediaService.instance.getImageFromLibrary();
             if (image != null) {
-              var result = await CloudStorageService.instance
-                  .uploadMediaMessage(_auth.user!.uid, File(image.path));
-              var imageURL = await result.ref.getDownloadURL();
-              DBService.instance.sendMessage(
-                  widget.conversationID,
-                  Message(
-                      content: imageURL,
-                      senderID: _auth.user!.uid,
-                      timestamp: Timestamp.now(),
-                      type: MessageType.Image));
+              // var result = await CloudStorageService.instance
+              //     .uploadMediaMessage(_auth.authData!.user.id, File(image.path));
+              // var imageURL = await result.ref.getDownloadURL();
+              // DBService.instance.sendMessage(
+              //     widget.conversationID,
+              //     Message(
+              //         content: imageURL,
+              //         senderID: _auth.authData!.user.id,
+              //         timestamp: Timestamp.now(),
+              //         type: MessageType.Image));
             }
           },
           backgroundColor: Colors.blue,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:ft_chat/models/User.dart';
 import 'package:ft_chat/models/contact.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
 import 'package:ft_chat/services/db_service.dart';
 import 'package:provider/provider.dart';
 
+// ignore: must_be_immutable
 class ProfilePage extends StatelessWidget {
   final double height;
   final double width;
@@ -22,38 +24,39 @@ class ProfilePage extends StatelessWidget {
   Widget _profilePageUI() {
     return Builder(builder: (context) {
       _auth = Provider.of<AuthProvider>(context);
-      return StreamBuilder<Contact>(
-          stream: DBService.instance.getUserData(_auth.user!.uid),
-          builder: (context, snapshot) {
-            var user = snapshot.data;
-            if (!snapshot.hasData || user == null) {
-              return Center(child: CircularProgressIndicator());
-            }
-            return Center(
-              child: SizedBox(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _circleAvatar(user.image),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    _userName(user.name),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    _userEmail(user.email),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    _logout()
-                  ],
-                ),
+      var user;
+      if (_auth.authData != null) {
+        user = _auth.authData!.user;
+      }
+      if (user == null) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+      return Center(
+        child: SizedBox(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // _circleAvatar(user.image),
+              const SizedBox(
+                height: 10,
               ),
-            );
-          });
+              _userName(user.name),
+              const SizedBox(
+                height: 10,
+              ),
+              _userEmail(user.email),
+              const SizedBox(
+                height: 10,
+              ),
+              _logout()
+            ],
+          ),
+        ),
+      );
     });
   }
 

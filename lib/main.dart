@@ -20,14 +20,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           brightness: Brightness.dark,
           backgroundColor: Color.fromRGBO(28, 27, 27, 1)),
-
-      // initialRoute: "login",
+      initialRoute: "login",
       routes: {
         "login": (BuildContext _context) => LoginPage(),
         "home": (BuildContext _context) => HomePage(),
         "register": (BuildContext _context) => RegistrationPage(),
       },
-      home: AppWithFirebase(),
+      home: LoginPage(),
     );
   }
 }
@@ -38,33 +37,34 @@ class AppWithFirebase extends StatefulWidget {
 }
 
 class _AppState extends State<AppWithFirebase> {
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  // final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      // Initialize FlutterFire:
-      future: _initialization,
-      builder: (context, snapshot) {
-        // Check for errors
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Text("Ooops Error..."),
-          );
-        }
+    return LoginPage();
+    // return FutureBuilder(
+    //   // Initialize FlutterFire:
+    //   future: _initialization,
+    //   builder: (context, snapshot) {
+    //     // Check for errors
+    //     if (snapshot.hasError) {
+    //       return Scaffold(
+    //         body: Text("Ooops Error..."),
+    //       );
+    //     }
 
-        // Once complete, show your application
-        if (snapshot.connectionState == ConnectionState.done) {
-          return LoginPage();
-        }
+    //     // Once complete, show your application
+    //     if (snapshot.connectionState == ConnectionState.done) {
+    //       return LoginPage();
+    //     }
 
-        // Otherwise, show something whilst waiting for initialization to complete
-        return Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      },
-    );
+    //     // Otherwise, show something whilst waiting for initialization to complete
+    //     return Scaffold(
+    //       body: Center(
+    //         child: CircularProgressIndicator(),
+    //       ),
+    //     );
+    //   },
+    // );
   }
 }

@@ -1,9 +1,9 @@
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ft_chat/providers/auth_provider.dart';
-import 'package:ft_chat/services/cloud_storage_service.dart';
-import 'package:ft_chat/services/db_service.dart';
 import 'package:ft_chat/services/media_service.dart';
 import 'package:ft_chat/services/navigation_service.dart';
 import 'package:ft_chat/services/snackbar_service.dart';
@@ -222,13 +222,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             width: _deviceWidth,
             child: MaterialButton(
               onPressed: () {
+                print("${_email}, ${_password}");
                 if (_formKey.currentState!.validate()) {
-                  _auth.registerUserWithEmailAndPassword(_email, _password,
-                      (String uid) async {
+                  _auth.registerUserWithEmailAndPassword(
+                      _email, _password, _name, (String uid) async {
                     // var _result = await CloudStorageService.instance
                     //     .uploadUserImage(uid, _file as File);
                     // var _imageUrl = await _result.ref.getDownloadURL();
-                    await DBService.instance.createUserInDb(uid, _name, _email);
+                    // await DBService.instance.createUserInDb(uid, _name, _email);
                     // .createUserInDb(uid, _name, _email, _imageUrl);
                   });
                 }
